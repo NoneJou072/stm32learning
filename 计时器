@@ -1,0 +1,139 @@
+//timer.c
+
+#include<timer.h>
+#include<led.h>
+
+int temp=0;
+int t2=0;
+
+void TIM3_Int_Init(u16 arr,u16 psc)
+{
+	
+	TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStrue;
+	NVIC_InitTypeDef NVIC_InitStructure;
+	
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3,ENABLE);
+	
+	
+	TIM_TimeBaseInitStrue.TIM_Period=arr;
+	TIM_TimeBaseInitStrue.TIM_Prescaler=psc;
+	TIM_TimeBaseInitStrue.TIM_CounterMode=TIM_CounterMode_Up;
+	TIM_TimeBaseInitStrue.TIM_ClockDivision=TIM_CKD_DIV1;
+	TIM_TimeBaseInit(TIM3,&TIM_TimeBaseInitStrue);
+	
+	
+	TIM_ITConfig(TIM3,TIM_IT_Update,ENABLE);
+	
+	NVIC_InitStructure.NVIC_IRQChannel = TIM3_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=0 ;//抢占优先级3
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;		//子优先级3
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			//IRQ通道使能
+	NVIC_Init(&NVIC_InitStructure);	//根据指定的参数初始化VIC寄存器
+	
+	TIM_Cmd(TIM3,ENABLE);
+	
+}
+
+void TIM3_IRQHandler(void)
+{
+	if(TIM_GetITStatus(TIM3,TIM_IT_Update)!=RESET)
+	{
+		temp++;
+		if(temp==10)temp=0,t2++;
+		
+		TIM_ClearITPendingBit(TIM3,TIM_IT_Update);
+	}
+}
+
+//timer.h
+
+#ifndef __TIMER_H
+#define __TIMER_H
+#include "sys.h"
+extern int temp;
+extern int t2;
+
+void TIM3_Int_Init(u16 arr,u16 psc);
+	
+	
+#endif
+
+//main
+
+#include "sys.h"
+#include "delay.h"
+#include "usart.h"
+#include "led.h"
+#include "timer.h"
+u16 min1,min2;
+void GpuSend(char * buf1)
+{  u8 i=0;
+ while (1)
+{  if (buf1[i]!=0)
+	{  USART_SendData(USART1, buf1[i]);  //发送一个byte到串口
+      while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET){}; //等待发送结束
+       i++;
+	}
+	else return;
+}
+}
+
+void num(void)
+{
+	GpuSend("DS48(107,62,':',16,0);");
+		if(temp==0)GpuSend("DS48(166,62,'0',16,0);\r\n");
+		 if(temp==1)GpuSend("DS48(166,62,'1',16,0);\r\n");
+		 if(temp==2)GpuSend("DS48(166,62,'2',16,0);\r\n");
+		 if(temp==3)GpuSend("DS48(166,62,'3',16,0);\r\n");
+		 if(temp==4)GpuSend("DS48(166,62,'4',16,0);\r\n");
+		 if(temp==5)GpuSend("DS48(166,62,'5',16,0);\r\n");
+		 if(temp==6)GpuSend("DS48(166,62,'6',16,0);\r\n");
+		 if(temp==7)GpuSend("DS48(166,62,'7',16,0);\r\n");
+		 if(temp==8)GpuSend("DS48(166,62,'8',16,0);\r\n");
+		 if(temp==9)GpuSend("DS48(166,62,'9',16,0);\r\n");
+		 
+		 if(t2==0)GpuSend("DS48(136,62,'0',16,0);\r\n");
+		 if(t2==1)GpuSend("DS48(136,62,'1',16,0);\r\n");
+		 if(t2==2)GpuSend("DS48(136,62,'2',16,0);\r\n");
+		 if(t2==3)GpuSend("DS48(136,62,'3',16,0);\r\n");
+		 if(t2==4)GpuSend("DS48(136,62,'4',16,0);\r\n");
+		 if(t2==5)GpuSend("DS48(136,62,'5',16,0);\r\n");
+		 
+		 if(t2==6)min1++,t2=0;
+		 
+		 if(min1==0)GpuSend("DS48(76,62,'0',16,0);\r\n");
+		 if(min1==1)GpuSend("DS48(76,62,'1',16,0);\r\n");
+		 if(min1==2)GpuSend("DS48(76,62,'2',16,0);\r\n");
+		 if(min1==3)GpuSend("DS48(76,62,'3',16,0);\r\n");
+		 if(min1==4)GpuSend("DS48(76,62,'4',16,0);\r\n");
+		 if(min1==5)GpuSend("DS48(76,62,'5',16,0);\r\n");
+		 if(min1==6)GpuSend("DS48(76,62,'6',16,0);\r\n");
+		 if(min1==7)GpuSend("DS48(76,62,'7',16,0);\r\n");
+		 if(min1==8)GpuSend("DS48(76,62,'8',16,0);\r\n");
+		 if(min1==9)GpuSend("DS48(76,62,'9',16,0);\r\n");
+		 
+		 if(min1==10)min2++,min1=0;
+		 
+		 if(min2==0)GpuSend("DS48(42,62,'0',16,0);\r\n");
+		 if(min2==1)GpuSend("DS48(42,62,'1',16,0);\r\n");
+		 if(min2==2)GpuSend("DS48(42,62,'2',16,0);\r\n");
+		 if(min2==3)GpuSend("DS48(42,62,'3',16,0);\r\n");
+		 if(min2==4)GpuSend("DS48(42,62,'4',16,0);\r\n");
+		 if(min2==5)GpuSend("DS48(42,62,'5',16,0);\r\n");
+		 if(min2==6)min2=0;
+}
+
+ int main(void)
+ {	
+	 NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+	 delay_init();
+	 LED_Init();
+	 uart_init(115200);
+	 TIM3_Int_Init(9999,7199);
+	 GpuSend("CLS(0)");
+	 while(1)
+	 {
+		 num();
+	 }
+} 
+ 
